@@ -1,0 +1,97 @@
+import pygame
+import pygame.gfxdraw
+
+import functions
+import level1
+import level2
+import main
+from const import *
+from main import *
+from functions import *
+from level1 import *
+from pygame.locals import *
+
+
+def start_playing(level, target):
+    pygame.init()
+    screen = pygame.display.set_mode((WIDTH_SCREEN, HEIGHT_SCREEN))
+
+    button_back = functions.Button(25, 20, 125, 40, ("Выйти", 45, 20))
+    button_start = functions.Button(600, 490, 170, 55, ("Начать", 625, 490))
+
+    for_text = pygame.image.load("images/fon_text.png")
+    picture = pygame.transform.scale(for_text, (700, 540))
+    text_rect = picture.get_rect().move(250, 40)
+    picture.set_alpha(80)
+
+    font = pygame.font.SysFont("comicsansms", 30)
+    num_level = font.render(f"Уровень {level}", 1, pygame.Color(COLOR_FON))
+    num_rect = num_level.get_rect()
+    num_rect.x, num_rect.y = 520, 145
+
+    font = pygame.font.SysFont("comicsansms", 25)
+
+    running = True
+    backing = False
+    start_1 = False
+    start_2 = False
+    start_3 = False
+    start_4 = False
+
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if button_back.pressed(event.pos):
+                    backing = True
+                if button_start.pressed(event.pos):
+                    if level == 1:
+                        start_1 = True
+                    elif level == 2:
+                        start_2 = True
+                    elif level == 2:
+                        start_3 = True
+                    elif level == 2:
+                        start_4 = True
+
+        screen.blit(functions.load_image("fon1.jpg"), (0, 0))
+        screen.blit(picture, text_rect)
+        screen.blit(num_level, num_rect)
+
+        y = 195
+        for text in target:
+            string_rendered = font.render(text, 1, pygame.Color(COLOR_FON))
+            intro_rect = string_rendered.get_rect()
+            intro_rect.x = 430
+            intro_rect.y = y
+            screen.blit(string_rendered, intro_rect)
+            y += 35
+
+        button_start.draw_button(screen, 0, 80)
+        button_start.write(screen, COLOR_FON, 35)
+        button_back.draw_button(screen, 0, 90)
+        button_back.write(screen, COLOR_TEXT_1, 27)
+
+        pygame.display.flip()
+
+        if backing:
+            running = False
+            main.start()
+        if start_1:
+            running = False
+            level1.level_1()
+        if start_2:
+            running = False
+            level2.level_2()
+        if start_3:
+            running = False
+            level1.level_1()
+        if start_4:
+            running = False
+            level1.level_1()
+
+    pygame.quit()
+
+# if __name__ == "__main__":
+#     start_playing()
