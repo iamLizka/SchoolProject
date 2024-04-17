@@ -1,6 +1,7 @@
 import pygame
 import os
 import sys
+import json
 import sqlite3
 from const import *
 from level1 import *
@@ -25,15 +26,28 @@ def load_image(name, size=None, colorkey=None):
     return image
 
 
-def download_image():
+def download(topic):
     db = sqlite3.connect("db/words.db")
     sql = db.cursor()
-    ru = [el[0] for el in sql.execute(f"""SELECT ru FROM lets_go""").fetchall()]
-    en = [el[0] for el in sql.execute(f"""SELECT en FROM lets_go""").fetchall()]
-    file_image = [el[0] for el in sql.execute(f"""SELECT image FROM lets_go""").fetchall()]
-    file_sound = [el[0] for el in sql.execute(f"""SELECT sound FROM lets_go""").fetchall()]
+    data = {}
+    en = [el[0] for el in sql.execute(f"""SELECT en FROM {topic}""").fetchall()]
+    file_image = [el[0] for el in sql.execute(f"""SELECT image FROM {topic}""").fetchall()]
+    file_sound = [el[0] for el in sql.execute(f"""SELECT sound FROM {topic}""").fetchall()]
     db.close()
-    return ru, en, file_image, file_sound
+    data["en"] = en
+    data["images"] = file_image
+    data["sounds"] = file_sound
+    with open('now_words.json', 'w') as file:
+        json.dump(data, file)
+
+
+def open_file_words():
+    with open('now_words.json') as file:
+        data = json.load(file)
+        en_words = data['en']
+        list_image_files = data['images']
+        list_sound_files = data['sounds']
+        return en_words, list_image_files, list_sound_files
 
 
 class Button:

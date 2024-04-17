@@ -13,7 +13,7 @@ from play import *
 
 class New_object(pygame.sprite.Sprite):
     def __init__(self, image, size, x, y):
-        super().__init__(object_sprite)
+        super().__init__(photo_sprite)
         self.image = pygame.transform.scale(image, (size, size))
         self.rect = self.image.get_rect().move(x, y)
 
@@ -31,27 +31,27 @@ def output_word(screen, word):
     screen.blit(string_rendered, intro_rect)
 
 
-def delete_image_word(ru, en, files_image, files_sound):
-    if len(ru) == 1:
+def delete_image_word(en, files_image, files_sound):
+    if len(en) == 1:
         return False
-    object_sprite.sprites()[0].kill()
-    for list_ in [ru, en, files_image, files_sound]:
+    photo_sprite.sprites()[0].kill()
+    for list_ in [en, files_image, files_sound]:
         list_.pop(0)
     New_object(functions.load_image(files_image[0], colorkey=1), 370, 320, 100)
     start_sound(files_sound)
 
-    return ru, en, files_image, files_sound
+    return en, files_image, files_sound
 
 
-def change_image_word(ru, en, files_img, files_sound):
-    object_sprite.sprites()[0].kill()
+def choose_image_word(en, files_img, files_sound):
+    photo_sprite.sprites()[0].kill()
 
-    for list_ in [ru, en, files_img, files_sound]:
+    for list_ in [en, files_img, files_sound]:
         list_.append(list_.pop(0))
     New_object(functions.load_image(files_img[0], colorkey=1), 370, 320, 100)
     start_sound(files_sound)
 
-    return ru, en, files_img, files_sound
+    return en, files_img, files_sound
 
 
 def level_1():
@@ -72,7 +72,7 @@ def level_1():
     next = False
     next_level = False
 
-    ru_words, en_words, list_image_files, list_sound_files = functions.download_image()
+    en_words, list_image_files, list_sound_files = functions.open_file_words()
     New_object(functions.load_image(list_image_files[0], colorkey=1), 370, 320, 100)
     start_sound(list_sound_files)
 
@@ -82,7 +82,7 @@ def level_1():
                 running = False
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if button_next.pressed(event.pos):
-                    data = delete_image_word(ru_words, en_words, list_image_files, list_sound_files)
+                    data = delete_image_word(en_words, list_image_files, list_sound_files)
                     if not data:
                         if not next_level:
                             button_next = functions.Button(650, 595, 320, 55, ("Следующий уровень", 665, 600))
@@ -90,10 +90,9 @@ def level_1():
                         else:
                             next = True
                     else:
-                        ru_words, en_words, list_image_files, list_sound_files = data
+                        en_words, list_image_files, list_sound_files = data
                 if button_repeat.pressed(event.pos):
-                    ru_words, en_words, list_image_files, list_sound_files = change_image_word(ru_words, en_words,
-                                                                               list_image_files, list_sound_files)
+                    en_words, list_image_files, list_sound_files = choose_image_word(en_words, list_image_files, list_sound_files)
                 if button_back.pressed(event.pos):
                     backing = True
                 if but_sound.pressed(event.pos):
@@ -108,7 +107,7 @@ def level_1():
 
         output_word(screen, en_words[0])
 
-        object_sprite.draw(screen)
+        photo_sprite.draw(screen)
         button_next.draw_button(screen, 0, 90)
         button_next.write(screen, COLOR_TEXT_1, 30)
         button_back.draw_button(screen, 0, 90)
@@ -120,7 +119,7 @@ def level_1():
 
         if backing:
             running = False
-            for sprite in object_sprite:
+            for sprite in photo_sprite:
                 sprite.kill()
             main.start()
         if next:
@@ -129,5 +128,9 @@ def level_1():
 
     pygame.quit()
 
-object_sprite = pygame.sprite.Group()
+photo_sprite = pygame.sprite.Group()
+
+
+# if __name__ == "__main__":
+#     level_1()
 

@@ -10,6 +10,7 @@ from const import *
 from main import *
 from play import *
 
+
 class WindowForWord(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__(windows_spites)
@@ -17,20 +18,21 @@ class WindowForWord(pygame.sprite.Sprite):
         self.image.fill(COLOR_FON_1)
         self.rect = self.image.get_rect()
         self.rect.x, self.rect.y = x, y
+        self.coef = 1
         self.word = None
         self.can_word = None
 
     def draw_window(self, screen):
-        rect = pygame.Rect((self.rect.x, self.rect.y, 200, 50))
-        surface = pygame.Surface((200, 50), flags=SRCALPHA)
+        rect = pygame.Rect((self.rect.x, self.rect.y, 240, 50))
+        surface = pygame.Surface((240, 50), flags=SRCALPHA)
         pygame.draw.rect(surface, (255, 255, 255, 50), surface.get_rect(), border_radius=30)
         screen.blit(surface, rect)
-        pygame.draw.rect(screen, COLOR_FON_1, (self.rect.x, self.rect.y, 200, 50), 2, border_radius=30)
+        pygame.draw.rect(screen, COLOR_FON_1, (self.rect.x, self.rect.y, 240, 50), 2, border_radius=30)
         if self.can_word:
             font = pygame.font.SysFont("comicsansms", 35)
             string_rendered = font.render(self.word, 1, pygame.Color(COLOR_FON))
             rect_w = string_rendered.get_rect()
-            rect_w.x, rect_w.y = self.rect.x + 100 - len(self.word) * 17 // 2, self.rect.y - 4
+            rect_w.x, rect_w.y = self.rect.x + self.plus, self.rect.y - 4
             screen.blit(string_rendered, rect_w)
 
     def add_word(self, word):
@@ -45,7 +47,8 @@ class WindowForWord(pygame.sprite.Sprite):
 
     def draw_word(self):
         self.can_word = True
-
+        self.coef = 2.5
+        self.plus = (240 - 20 * len(self.word)) // 2
 
 
 class Word(pygame.sprite.Sprite):
@@ -79,9 +82,62 @@ class Word(pygame.sprite.Sprite):
 
 class New_object(pygame.sprite.Sprite):
     def __init__(self, image, size, x, y):
-        super().__init__(object_sprite)
+        super().__init__(photo_sprite)
         self.image = pygame.transform.scale(image, (size, size))
         self.rect = self.image.get_rect().move(x, y)
+
+
+def create_all(count, list_img, coord_x, en_words, all_en_words):
+    plus_x = 20
+    for i in range(count):
+        WindowForWord(coord_x + plus_x, 380)
+        plus_x += 310
+
+    plus_x = 20
+    for i in range(count):
+        New_object(functions.load_image(list_img[i], colorkey=1), 230, coord_x + plus_x, 110)
+        windows_spites.sprites()[i].add_word(en_words[i])
+        plus_x += 310
+
+    list_words = set(en_words[:3])
+    add_list_words = random.sample(all_en_words, 5)
+    while len(list_words) < 5:
+        list_words.add(add_list_words[0])
+        add_list_words.pop(0)
+
+    plus_x = 20
+    for word in list_words:
+        Word(140 + plus_x, 540, word)
+        plus_x += 150
+
+    return list_words
+
+
+def count_image(count):
+    if count <= 0:
+        return False
+    count_img = 3 if count >= 3 else count % 3
+    return count_img
+
+
+def coord_x_for_img(count):
+    x = 300 if count == 1 else 200
+    x = 45 if count >= 3 else 200
+    return x
+
+
+def update_window(en_words, images):
+    for sprite in photo_sprite:
+        sprite.kill()
+    for sprite in windows_spites:
+        sprite.kill()
+    for sprite in words_sprites:
+        sprite.kill()
+
+    en_words = en_words[3:] if len(en_words) >= 3 else en_words[len(en_words):]
+    images = images[3:] if len(images) >= 3 else images[len(images):]
+
+    return en_words, images
 
 
 def level_2():
@@ -100,7 +156,7 @@ def level_2():
     next_words = False
     next_level = False
 
-    ru_words, en_words, list_image_files, list_sound_files = functions.download_image()
+    en_words, list_image_files, list_sound_files = functions.open_file_words()
     all_en_words = en_words[::]
     count_img = count_image(len(en_words))
     coord_x = coord_x_for_img(len(en_words))
@@ -135,7 +191,7 @@ def level_2():
 
         mouse_pos = pygame.mouse.get_pos()  # получение координаты мыши
 
-        screen.blit(functions.load_image("fon1.jpg"), (0, 0))
+        screen.blit(functions.load_image("fon2.jpg"), (0, 0))
 
         # рисование кнопок
         button_back.draw_button(screen, 0, 90)
@@ -150,7 +206,7 @@ def level_2():
         pygame.draw.rect(surface, (255, 255, 255, 125), surface.get_rect(), border_radius=30)
         screen.blit(surface, rect)
 
-        object_sprite.draw(screen)  # рисование картинок
+        photo_sprite.draw(screen)  # рисование картинок
 
         for sprite in windows_spites:  # рисование окошек для слов
             sprite.draw_window(screen)
@@ -190,72 +246,19 @@ def level_2():
 
         if backing:
             running = False
-            # for sprite in object_sprite:
-            #     sprite.kill()
             main.start()
         if next_level:
             running = False
-            play.start_playing(3, TEXT_TARGET_2)
+            play.start_playing(3, TEXT_TARGET_3)
 
     pygame.quit()
 
 
-def create_all(count, list_img, coord_x, en_words, all_en_words):
-    plus_x = 20
-    for i in range(count):
-        WindowForWord(coord_x + plus_x, 380)
-        plus_x += 310
-
-    plus_x = 0
-    for i in range(count):
-        New_object(functions.load_image(list_img[i], colorkey=1), 230, coord_x + plus_x, 110)
-        windows_spites.sprites()[i].add_word(en_words[i])
-        plus_x += 310
-
-    list_words = set(en_words[:3])
-    add_list_words = random.sample(all_en_words, 5)
-    while len(list_words) < 5:
-        list_words.add(add_list_words[0])
-        add_list_words.pop(0)
-
-    plus_x = 20
-    for word in list_words:
-        Word(140 + plus_x, 540, word)
-        plus_x += 150
-
-    return list_words
-
-
-def count_image(count):
-    if count <= 0:
-        return False
-    count_img = 3 if count >= 3 else count % 3
-    return count_img
-
-def coord_x_for_img(count):
-    x = 300 if count == 1 else 200
-    x = 80 if count >= 3 else 200
-    return x
-
-def update_window(en_words, images):
-    for sprite in object_sprite:
-        sprite.kill()
-    for sprite in windows_spites:
-        sprite.kill()
-    for sprite in words_sprites:
-        sprite.kill()
-
-    en_words = en_words[3:] if len(en_words) >= 3 else en_words[len(en_words):]
-    images = images[3:] if len(images) >= 3 else images[len(images):]
-
-    return en_words, images
-
-
-object_sprite = pygame.sprite.Group()
+photo_sprite = pygame.sprite.Group()
 windows_spites = pygame.sprite.Group()
 words_sprites = pygame.sprite.Group()
 
-if __name__ == "__main__":
-    level_2()
+# if __name__ == "__main__":
+#     level_2()
 
 
